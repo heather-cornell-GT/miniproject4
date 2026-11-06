@@ -32,4 +32,20 @@ class MonsterClassificationAgent:
         for monster, label in samples:
             if monster == new_monster:
                 return label
+
+        positives = []
+        negatives = []
+        for monster, label in samples:
+            if label:
+                positives.append(monster)
+            else:
+                negatives.append(monster)
+
+        if not positives:
+            return False
         pass
+
+    def agent_confidence(self, positives, negatives):
+        seen_characteristics = {}
+        for index in self.parameters:
+            print(index)
