@@ -1,3 +1,4 @@
+from math import comb
 class MonsterClassificationAgent:
     parameters = {
         "size": ["tiny", "small", "medium", "large", "huge"],
@@ -49,7 +50,23 @@ class MonsterClassificationAgent:
         still_unseen = parameter_lenth - parameters_seen
         if still_unseen <= 0:
             return 0.0
-        
+        if parameters_seen == 0:
+            return 0.5
+
+        weight = 0.0
+        total = 0.0
+
+        for x in range(still_unseen): ##trying every combintation of parameters
+
+            parameter_combinations = comb(parameters_seen, x)
+
+            parameter_set_size = parameters_seen + x
+
+            percent_of_possibility = (1.0 / parameter_set_size) ** position
+
+            
+
+
 
     def agent_confidence(self, positives, negatives):
         seen_characteristics = {}
