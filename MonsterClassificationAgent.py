@@ -30,6 +30,8 @@ class MonsterClassificationAgent:
         #
         #Your function should return True or False as a guess as to whether or not this new
         #monster is an instance of the same species as that represented by the list.
+
+        #You may assume that these parameters are all that there is: if two monsters have the exact same parameters, they are guaranteed to be the same species.
         for monster, label in samples:
             if monster == new_monster:
                 return label
@@ -44,9 +46,13 @@ class MonsterClassificationAgent:
 
         if not positives:
             return False
+
+        seen, confidence = self.agent_confidence(positives, negatives)
+        #print(f'seen: {seen}, confidence: {confidence}')
+
         pass
 
-    def probability_of_unseen_being_valid(parameter_lenth, parameters_seen, position):
+    def probability_of_unseen_being_valid(self, parameter_lenth, parameters_seen, position):
         still_unseen = parameter_lenth - parameters_seen
         if still_unseen <= 0: ##every possible combinatoin was already seen
             return 0.0
@@ -56,7 +62,7 @@ class MonsterClassificationAgent:
         weight = 0.0
         total = 0.0
 
-        for x in range(still_unseen): ##trying every combintation of parameters
+        for x in range(still_unseen + 1): ##trying every combintation of parameters
 
             parameter_combinations = comb(parameters_seen, x)
 
@@ -78,12 +84,25 @@ class MonsterClassificationAgent:
 
 
     def agent_confidence(self, positives, negatives):
-        seen_characteristics = {}
+        seen_characteristics, confidence = {}, {}
         for index in self.parameters:
-            print(index)
+            #print(index)
             values_in_each_characteristic = set()
             for x in positives:
                 values_in_each_characteristic.add(x[index])
             seen_characteristics[index] = values_in_each_characteristic
 
+        #confidence maps (trait, value) to a  chance that value is possible, like confidence[("covering", "scales")] = 0.037
+        for trait, possible_trait_values in self.parameters.items():
+            traits_seen = seen_characteristics[trait]
+            #print(f'{trait}: {traits_seen}, possible_trait_values: {possible_trait_values}, positives: {len(positives)}, negatives: {len(negatives)}')
+            unseen_trait = self.probability_of_unseen_being_valid( len(possible_trait_values), len(traits_seen), len(positives))
+            #print(f'unseen_trait: {unseen_trait}')
 
+            for trait_values in possible_trait_values:
+                if trait_values in traits_seen:
+                    confidence[(trait, trait_values)] = 1.0
+                else:
+                    confidence[(trait, trait_values)] = unseen_trait
+
+        return seen_characteristics, confidence
