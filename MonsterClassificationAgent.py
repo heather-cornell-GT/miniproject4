@@ -48,7 +48,7 @@ class MonsterClassificationAgent:
 
     def probability_of_unseen_being_valid(parameter_lenth, parameters_seen, position):
         still_unseen = parameter_lenth - parameters_seen
-        if still_unseen <= 0:
+        if still_unseen <= 0: ##every possible combinatoin was already seen
             return 0.0
         if parameters_seen == 0:
             return 0.5
@@ -64,7 +64,16 @@ class MonsterClassificationAgent:
 
             percent_of_possibility = (1.0 / parameter_set_size) ** position
 
-            
+            odds_of_possibility = parameter_combinations * percent_of_possibility
+
+            fraction_of_odds = x / still_unseen
+
+            weight += fraction_of_odds
+            total += odds_of_possibility * fraction_of_odds
+
+        return total / weight
+
+
 
 
 
