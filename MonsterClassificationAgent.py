@@ -1,4 +1,4 @@
-from math import comb
+from math import comb, log
 class MonsterClassificationAgent:
     parameters = {
         "size": ["tiny", "small", "medium", "large", "huge"],
@@ -14,6 +14,10 @@ class MonsterClassificationAgent:
         "has-gills": [True, False],
         "has-tail": [True, False],
     }
+    reject_threshold = 0.01
+    smoothning = 4.0
+    def __init__(self, parameters):
+        self.parameters = parameters
     def __init__(self):
         #If you want to do any initial processing, add it here.
         pass
@@ -50,7 +54,43 @@ class MonsterClassificationAgent:
         seen, confidence = self.agent_confidence(positives, negatives)
         #print(f'seen: {seen}, confidence: {confidence}')
 
-        pass
+        all_traits_allowed = 1.0
+        for trait in self.parameters:
+            value = new_monster[trait]
+            all_traits_allowed *= confidence[(trait,value)]
+
+            if all_traits_allowed < self.reject_threshold:
+                return False
+
+
+
+        is_a_member, is_not_a_member = 0.0, 0.0
+
+        for trait, possible_value in self.parameters.items():
+            value = new_monster[trait]
+
+            allowed_count_of_values =len(seen[trait])
+
+            for y in possible_value:
+                if y not in seen[trait]:
+                    allowed_count_of_values += confidence[(trait,y)]
+
+            iterate_through_allowed_traits = confidence[(trait, value)] / allowed_count_of_values
+
+            if iterate_through_allowed_traits <= 0.0:
+                return False
+            is_a_member += log(iterate_through_allowed_traits)
+
+            negative_trait_counts = 0
+
+            for negative in negatives:
+                if negative[trait] == value:
+                    negative_trait_counts += 1
+
+            iterate_through_nonallowed_traits = ((negative_trait_counts + self.smoothning) /(len(negatives) + self.smoothning * len(possible_value)))
+            is_not_a_member += log(iterate_through_nonallowed_traits)
+
+        return is_a_member >= is_not_a_member
 
     def probability_of_unseen_being_valid(self, parameter_lenth, parameters_seen, position):
         still_unseen = parameter_lenth - parameters_seen
@@ -65,11 +105,8 @@ class MonsterClassificationAgent:
         for x in range(still_unseen + 1): ##trying every combintation of parameters
 
             parameter_combinations = comb(parameters_seen, x)
-
             parameter_set_size = parameters_seen + x
-
             percent_of_possibility = (1.0 / parameter_set_size) ** position
-
             odds_of_possibility = parameter_combinations * percent_of_possibility
 
             fraction_of_odds = x / still_unseen
