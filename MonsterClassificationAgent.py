@@ -45,7 +45,19 @@ class MonsterClassificationAgent:
             return False
         pass
 
+    def probability_of_unseen_being_valid(parameter_lenth, parameters_seen, position):
+        still_unseen = parameter_lenth - parameters_seen
+        if still_unseen <= 0:
+            return 0.0
+        
+
     def agent_confidence(self, positives, negatives):
         seen_characteristics = {}
         for index in self.parameters:
             print(index)
+            values_in_each_characteristic = set()
+            for x in positives:
+                values_in_each_characteristic.add(x[index])
+            seen_characteristics[index] = values_in_each_characteristic
+
+
